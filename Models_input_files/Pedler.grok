@@ -1,0 +1,798 @@
+!###############################################################################
+!-------------------------------------------------------------------------------
+!----------------------------  Problem description -----------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+Pedler creek 
+end title
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!------------------------------ Grid generation --------------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+
+!----------------------------------------------- Generate grid for the first run
+read algomesh 2d grid 
+./grid/Pedler_coarse_grid.ah2
+
+Generate layers interactive
+zone by layer
+
+  base elevation
+    Elevation from raster file
+        ./grid/Baselayer.txt
+
+  end base elevation
+
+  new layer
+    layer name
+        TwentyMeterDeep
+    Minimum layer thickness
+        0.01
+
+    proportional sublayering
+        10
+        0.2
+        0.2
+        0.2
+        1
+        1
+        1
+        1
+        2
+        2
+        2
+
+    Elevation from raster file
+         ./grid/surface_elevation_original.txt
+ 
+  	offset top
+    	-20
+  end ! new layer
+
+  new layer
+    layer name
+        ThreeMeterDeep
+    Minimum layer thickness
+        0.01
+
+    proportional sublayering
+        4
+        0.1
+        0.2
+        0.2
+        0.2
+                
+    Elevation from raster file
+         ./grid/surface_elevation_original.txt
+  
+    offset top
+    	-3
+  end ! new layer
+
+new layer
+    layer name
+        SurfaceElevation
+    Minimum layer thickness
+        0.01
+
+    proportional sublayering
+        13
+        0.1
+        0.1
+        0.4
+        0.4
+        0.4
+        0.4
+        0.4
+        0.4
+        0.4
+        0.4
+        0.4
+        0.4
+        1
+   
+    Elevation from raster file
+         ./grid/surface_elevation_original.txt
+  end ! new layer
+end ! generate layers interactive
+
+!----------------------------------------------- Read previously defined grid
+!Read 3D grid
+
+end grid generation
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!------------------------ General simulation parameters ------------------------
+!---------------------mass balance output scientific format---------------------
+!###############################################################################
+finite difference mode
+unsaturated
+transient flow
+dual nodes for surface flow
+units: kilogram-metre-day
+
+no nodal flow check
+
+compute underrelaxation factor
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!--------------------------- Porous media properties---- -----------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+use domain type
+porous media
+
+properties file
+./properties/subsurface_scenario1.mprops
+
+!===============Aquifers properties=================
+!---------------------------------------- Quaternary
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements between raster surfaces
+ ./grid/quaternary_bot.txt
+ ./grid/quaternary_top.txt
+
+new zone
+    1
+clear chosen zones
+choose zone number
+    1
+read properties
+    Quaternary
+
+!---------------------------------------- Port Willunga
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements between raster surfaces
+ ./grid/PW_bot.txt
+ ./grid/PW_top.txt
+
+new zone
+    2
+clear chosen zones
+choose zone number
+    2
+read properties
+    PWF
+
+!---------------------------------------- Blanche Point
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements between raster surfaces
+ ./grid/BP_bot.txt
+ ./grid/BP_top.txt
+
+new zone
+    3
+clear chosen zones
+choose zone number
+    3
+read properties
+    BP
+
+!---------------------------------------- Maslin Sands
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements between raster surfaces
+ ./grid/MS_bot.txt
+ ./grid/MS_top.txt
+
+new zone
+    4
+clear chosen zones
+choose zone number
+    4
+read properties
+    MS
+
+!===================Inactive cells=====================
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements between raster surfaces
+ ./grid/Baselayer.txt
+ ./grid/basement_corr.txt
+
+new zone
+    5
+clear chosen zones
+choose zone number
+    5
+
+Make zone inactive 
+
+!===============Shallow soil properties===============
+
+!---------------------------------------- LoamSoil (0.5 - 0.0m depth)
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements gb
+ ./grid/pedler.echos100.LoamSoil
+  
+24, 29
+
+new zone
+    6
+clear chosen zones
+choose zone number
+    6
+read properties
+    LoamSoil
+
+!---------------------------------------- SandySoil (1.1 - 0.0m depth)
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose elements gb
+
+ ./grid/pedler.echos100.SandySoil
+21, 29
+
+new zone
+    7
+clear chosen zones
+choose zone number
+    7
+read properties
+    SandySoil
+
+!---------------------------------------- ClaySoil (1.5 - 0.0m depth)
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+! Clay soil 1.5 - 0 m depth
+choose elements gb
+ ./grid/pedler.echos100.ClaySoil
+19, 29
+
+
+! Loam sublayer 1.5 - 0.5 m depth
+choose elements gb
+ ./grid/pedler.echos100.LoamSoil
+19, 24
+
+! Sand sublayer 1.5 - 1.1 m depth
+choose elements gb
+ ./grid/pedler.echos100.SandySoil
+19, 21
+
+new zone
+    8
+clear chosen zones
+choose zone number
+    8
+read properties
+    ClaySoil
+
+mesh to tecplot
+pedlermesh.dat
+
+K to tecplot
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!--------------------------- Overland flow properties --------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+use domain type
+surface
+
+properties file
+./properties/surface.oprops
+
+!---------------------------------------Creek middle section
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+
+Choose faces top gb
+     ./grid/pedler.echos100.River
+
+new zone
+    1
+choose zone number
+    1
+read properties
+    Creek middle section
+
+!---------------------------------------Creek Headwaters
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+Choose faces top gb
+     ./grid/pedler.echos100.River_headwaters
+
+new zone
+    2
+choose zone number
+    2
+read properties
+    Creek Headwaters
+
+!---------------------------------------Floodplain Pastures, Trees & Crops
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+      ./grid/pedler.echos100.Floodplain_pasture_trees_crops
+
+new zone
+    3
+choose zone number
+    3
+read properties
+     Floodplain pasture
+
+!---------------------------------------Floodplain Urban
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.Floodplain_urban
+
+new zone
+    4
+choose zone number
+    4
+read properties
+    Floodplain Urban
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!----------------------- Evapotranspiration properties -------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+use domain type
+ET
+
+properties file
+     ./properties/pedler.etprops
+
+!--------------------------------------- ET Grass - crops
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.Floodplain_pasture_trees_crops
+
+new zone
+    1
+choose zone number
+    1
+read properties
+     Grass 
+
+!--------------------------------------- Eucalyptus
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.River
+
+new zone
+    2
+choose zone number
+    2
+read properties
+    Eucalyptus
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!--------------------------- Overland & Porous Media BC ------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+!--------------------------------------- Porous Media - Initial Head
+use domain type
+porous media
+
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose zones all
+
+Initial head from output file
+Initial.head_pm.0005
+
+!------------------  Porous Media - Fluid transfer1
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces vertical from gb nodes
+    ./grid/pedler.nchos100.outlet_nodes
+8, 21
+
+create face set from chosen faces
+outflow
+
+    boundary condition
+    type
+    fluid transfer
+
+    face set
+    outflow
+    time value table
+    0 43
+    end
+
+    fluid transfer coefficients
+    4.1 !hydraulic conductivity
+    10  !distance
+    end
+
+!--------------------------------------- Surface - Initial water depth
+use domain type
+surface
+
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose nodes all
+
+! Initially dry surface domain
+initial water depth
+   1E-7
+
+!--------------------------------------- Surface - Rain Avg for Valley and Hills
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top
+
+create face set from chosen faces
+ McValeRain
+
+boundary condition
+   type
+   rain
+
+   name
+   rainfall
+
+   face set
+   McValeRain
+
+   time value table
+   include Pedler_ppt.txt
+   end !time value table
+
+end !flux bc rain
+
+!--------------------------------------- Surface - ET
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top
+
+create face set from chosen faces
+ET
+
+boundary condition
+    type
+    potential evapotranspiration
+
+    name
+    ET
+
+    face set
+    ET
+
+    time value table
+    include Pedler_ETo2.txt
+    end !time value table
+
+end !flux bc ET
+
+
+!--------------------------------------- Surface - Critical depth
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose nodes top gb
+ ./grid/pedler.nchos100.outlet_nodes
+
+create segment set
+    critical_depth_segment
+
+boundary condition
+    type
+    critical depth
+
+    name
+    crit_depth
+
+    segment set
+    critical_depth_segment
+
+    tecplot output
+
+end !flux Critical Depth
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!------------------------------- Simulation control ---------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+Newton maximum iterations
+30
+Jacobian epsilon
+1.0d-6
+Newton absolute convergence criteria
+1.0d-1
+Newton residual convergence criteria
+1.0d-1
+Solver acceleration technique
+3
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!------------------------------- Timestep controls -----------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+head control
+5
+maximum timestep
+5
+initial timestep
+1e-3
+maximum timestep multiplier
+5
+minimum timestep multiplier
+0.1
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!------------------------------------ Output -----------------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+
+mass balance output general format
+echo flow boundary conditions
+
+output times
+0.01
+1
+3
+5
+6
+7
+8
+9
+10
+15
+30
+60
+91
+150
+160
+170
+180
+190
+200
+210
+220
+230
+240
+250
+260
+270
+280
+290
+510
+520
+530
+540
+550
+560
+570
+580
+590
+600
+610
+620
+630
+640
+650
+660
+870
+880
+890
+900
+910
+920
+930
+940
+950
+960
+970
+980
+990
+1000
+1010
+1020
+1183
+1274
+end
+
+!###############################################################################
+!-------------------------------------------------------------------------------
+!------------------------------------ HMC Routines------------------------------
+!-------------------------------------------------------------------------------
+!###############################################################################
+!skip on
+use domain type
+surface
+
+hmc
+
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+!--------------------------- SETUP HMC zones ------------------------
+!--------------------------------------------------------------------
+
+!---------------------------------------Overlandflow by soil type
+
+!-----------------------------Loam soil
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.LoamSoil
+
+new hmc zone from chosen
+hmc zone name
+    olf_Loam
+
+track rainfall-runoff generation
+end
+
+!-----------------------------Sand soil
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.SandySoil
+
+new hmc zone from chosen
+hmc zone name
+    olf_Sand
+
+track rainfall-runoff generation
+end
+
+!-----------------------------Clay soil
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.ClaySoil
+
+new hmc zone from chosen
+hmc zone name
+    olf_Clay
+
+track rainfall-runoff generation
+end
+
+!--------------------------------------- River 
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose faces top gb
+     ./grid/pedler.echos100.River
+
+new hmc zone from chosen
+hmc zone name
+    river
+
+track rainfall-runoff generation
+end
+
+!--------------------------------------- PM 
+use domain type
+porous media
+
+clear chosen zones
+clear chosen faces
+clear chosen segments
+clear chosen elements
+clear chosen nodes
+
+choose nodes all
+
+new hmc zone from chosen
+
+hmc zone name
+    dynamic_pm
+end
+
+!--------------------------- Specify HMC mode  ----------------------
+!--------------------------------------------------------------------
+
+hmc mode
+2
